@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>MPNuGetter</id>
+        <version>1.0.0</version>
+        <title>MP NuGetter</title>
+        <authors>mfaulkinbury</authors>
+        <owners>mfaulkinbury</owners>
+        <licenseUrl>https://raw.githubusercontent.com/mfaulkinbury/MPNuGetter/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/mfaulkinbury/MPNuGetter</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <developmentDependency>true</developmentDependency>
+        <description>Creates a NuGet package for the containing Management Pack project.</description>
+        <tags>SCMPInfra</tags>
+    </metadata>
+    <files>
+        <file src="build\MPNuGetter.targets" target="build\MPNuGetter.targets" />
+    </files>
+</package>

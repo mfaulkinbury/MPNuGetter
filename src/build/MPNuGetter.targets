@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="MpProjectNuGet" DependsOnTargets="EnsureMpProjectNuGetFolders;CreateMpProjectNuGetPropsTemplate;CreateMpProjectNuGetArtifacts;CreateMpProjectNuGetNuSpec;UpdateMpProjectNuGetNuSpecDependencies;CreateMpProjectNuGetTools" AfterTargets="MpPackage" />
+  <Target Name="EnsureMpProjectNuGetFolders">
+    <Message Text="Ensuring NuGet artfact folders for $(ManagementPackName)." Importance="high" />
+    <PropertyGroup>
+      <NuGetTargetFramework Condition=" '$(NuGetTargetFramework)' == '' ">$(MpFrameworkIdentifier)</NuGetTargetFramework>
+      <NuGetId>$(ManagementPackName)</NuGetId>
+      <NuGetVersion>%(EffectiveMpVersion.Version)</NuGetVersion>
+      <NuGetTitle>$(Name)</NuGetTitle>
+      <NuGetFolder>$(OutputPath)..\..\NuGet\</NuGetFolder>
+      <NuGetLibFolder>$(NuGetFolder)lib\</NuGetLibFolder>
+      <NuGetLibFrameworkFolder>$(NuGetLibFolder)$(NuGetTargetFramework)\</NuGetLibFrameworkFolder>
+      <NuGetBuildFolder>$(NuGetFolder)build\</NuGetBuildFolder>
+      <NuGetToolsFolder>$(NuGetFolder)tools\</NuGetToolsFolder>
+      <NuSpecFilePath>$(NuGetFolder)$(NuGetId).nuspec</NuSpecFilePath>
+      <PropsFilePath>$(NuGetBuildFolder)$(NuGetId).props</PropsFilePath>
+      <InstallFilePath>$(NuGetToolsFolder)install.ps1</InstallFilePath>
+      <UninstallFilePath>$(NuGetToolsFolder)uninstall.ps1</UninstallFilePath>
+      <PackagesFilePath>$(MSBuildProjectDirectory)\packages.config</PackagesFilePath>
+    </PropertyGroup>
+    <MakeDir Directories="$(NuGetFolder)" />
+    <MakeDir Directories="$(NuGetLibFolder)" />
+    <MakeDir Directories="$(NuGetLibFrameworkFolder)" />
+    <MakeDir Directories="$(NuGetBuildFolder)" />
+    <MakeDir Directories="$(NuGetToolsFolder)" />
+  </Target>
+  <Target Name="CreateMpProjectNuGetArtifacts">
+    <Message Text="Starting NuGet artfact creation for $(NuGetId)." Importance="high" />
+    <Copy SourceFiles="$(PackagedMp)" DestinationFolder="$(NuGetLibFrameworkFolder)" />
+  </Target>
+  <Target Name="CreateMpProjectNuGetPropsTemplate">
+    <Message Text="Generating NuGet props template for $(NuGetId)." Importance="high" />
+    <ItemGroup>
+      <PropsLine Include="line01">
+        <Text>&lt;?xml version="1.0" encoding="utf-8"?&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line02">
+        <Text>&lt;Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003"&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line03">
+        <Text>  &lt;ItemGroup&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line04">
+        <Text>    &lt;ManagementPackReference Include="$(NuGetId)"&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line05">
+        <Text>      &lt;HintPath&gt;..\packages\$(NuGetId).$(NuGetVersion)\lib\$(NuGetTargetFramework)\$(NuGetId).mpb&lt;/HintPath&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line06">
+        <Text>      &lt;Alias&gt;ADDALIASHERE&lt;/Alias&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line07">
+        <Text>      &lt;MinVersion&gt;$(NuGetVersion)&lt;/MinVersion&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line08">
+        <Text>    &lt;/ManagementPackReference&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line09">
+        <Text>  &lt;/ItemGroup&gt;</Text>
+      </PropsLine>
+      <PropsLine Include="line10">
+        <Text>&lt;/Project&gt;</Text>
+      </PropsLine>
+      <PropsLineText Include="%(PropsLine.Text)" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(PropsFilePath)" Lines="@(PropsLineText)" Overwrite="true" />
+  </Target>
+  <Target Name="CreateMpProjectNuGetNuSpec" Condition="!Exists($(NuSpecFilePath))">
+    <Message Text="Generating NuSpec for $(NuGetId)." Importance="high" />
+    <ItemGroup>
+      <NuSpecLine Include="line01">
+        <Text>&lt;?xml version="1.0" encoding="utf-8"?&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line02">
+        <Text>&lt;package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line03">
+        <Text>  &lt;metadata&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line04">
+        <Text>      &lt;id&gt;$(NuGetId)&lt;/id&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line05">
+        <Text>      &lt;version&gt;$(NuGetVersion)&lt;/version&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line06">
+        <Text>      &lt;authors&gt;$(NuGetTitle) Authors&lt;/authors&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line07">
+        <Text>      &lt;title&gt;$(NuGetTitle)&lt;/title&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line08">
+        <Text>      &lt;requireLicenseAcceptance&gt;false&lt;/requireLicenseAcceptance&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line09">
+        <Text>      &lt;description&gt;$(NuGetTitle)&lt;/description&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line10">
+        <Text>      &lt;tags&gt;$(NuGetTargetFramework)&lt;/tags&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line11">
+        <Text>&lt;dependencies&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line12">
+        <Text>&lt;/dependencies&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line13">
+        <Text>&lt;/metadata&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLine Include="line14">
+        <Text>&lt;/package&gt;</Text>
+      </NuSpecLine>
+      <NuSpecLineText Include="%(NuSpecLine.Text)" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(NuSpecFilePath)" Lines="@(NuSpecLineText)" Overwrite="true" />
+  </Target>
+  <Target Name="UpdateMpProjectNuGetNuSpecDependencies">
+    <Message Text="Reading NuSpec dependencies for $(NuGetId)." Importance="high" />
+    <CallTarget Targets="ReadMpProjectNuGetNuSpecDependencies"/>
+    <Message Text="Writing NuSpec dependencies for $(NuGetId)." Importance="high" />
+    <CallTarget Targets="WriteMpProjectNuGetNuSpecDependencies"/>
+  </Target>
+  <Target Name="ReadMpProjectNuGetNuSpecDependencies">
+    <XmlPeek XmlInputPath="$(PackagesFilePath)" Query="/packages/package[@targetFramework='scmpinfra' and boolean(@developmentDependency)!='true']">
+      <Output TaskParameter="Result" ItemName="NuGetPackageConfig" />
+    </XmlPeek>
+    <PropertyGroup>
+      <NuGetPackagesDelimited>@(NuGetPackageConfig)</NuGetPackagesDelimited>
+      <NuGetDependencies>$(NuGetPackagesDelimited.Replace(';','').Replace("package","dependency").Replace(` targetFramework="scmpinfra"`,""))</NuGetDependencies>
+    </PropertyGroup>
+  </Target>
+  <Target Name="WriteMpProjectNuGetNuSpecDependencies">
+    <PropertyGroup>
+        <NuSpecNsPrefix>nuspec</NuSpecNsPrefix>
+        <NewDependencyQuery>/$(NuSpecNsPrefix):package/$(NuSpecNsPrefix):metadata/$(NuSpecNsPrefix):dependencies</NewDependencyQuery>
+        <DependencyNamespaces>&lt;Namespace Prefix='$(NuSpecNsPrefix)' Uri='http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd'/&gt;</DependencyNamespaces>
+      </PropertyGroup>
+    <XmlPoke XmlInputPath="$(NuSpecFilePath)"
+             Query="$(NewDependencyQuery)"
+             Namespaces="$(DependencyNamespaces)"
+             Value="$(NuGetDependencies)" />
+  </Target>
+  <Target Name="CreateMpProjectNuGetTools">
+    <Message Text="Generating scripts for $(NuGetId)." Importance="high" />
+    <ItemGroup>
+      <InstallLine Include="line01">
+        <Text>param($installPath, $toolsPath, $package, $project)</Text>
+      </InstallLine>
+      <InstallLine Include="line02">
+        <Text># if there isn't a project file, there is nothing to do</Text>
+      </InstallLine>
+      <InstallLine Include="line03">
+        <Text>if (!$project) { return }</Text>
+      </InstallLine>
+      <InstallLine Include="line04">
+        <Text># Prompt to reload the project to add/remove the new/old references</Text>
+      </InstallLine>
+      <InstallLine Include="line05">
+        <Text>$project.Save($project.FullName)</Text>
+      </InstallLine>
+      <InstallLineText Include="%(InstallLine.Text)" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(InstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" />
+    <WriteLinesToFile File="$(UninstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" />
+  </Target>
+</Project>
