@@ -117,29 +117,29 @@
   </Target>
   <Target Name="UpdateMpProjectNuGetNuSpecDependencies">
     <Message Text="Reading NuSpec dependencies for $(NuGetId)." Importance="high" />
-    <CallTarget Targets="ReadMpProjectNuGetNuSpecDependencies"/>
+    <CallTarget Targets="ReadMpProjectNuGetNuSpecDependencies" />
     <Message Text="Writing NuSpec dependencies for $(NuGetId)." Importance="high" />
-    <CallTarget Targets="WriteMpProjectNuGetNuSpecDependencies"/>
+    <CallTarget Targets="WriteMpProjectNuGetNuSpecDependencies" />
   </Target>
   <Target Name="ReadMpProjectNuGetNuSpecDependencies">
     <XmlPeek XmlInputPath="$(PackagesFilePath)" Query="/packages/package[@targetFramework='scmpinfra' and boolean(@developmentDependency)!='true']">
       <Output TaskParameter="Result" ItemName="NuGetPackageConfig" />
     </XmlPeek>
     <PropertyGroup>
+      <NoDependencies>&lt;!-- no dependencies --></NoDependencies>
       <NuGetPackagesDelimited>@(NuGetPackageConfig)</NuGetPackagesDelimited>
-      <NuGetDependencies>$(NuGetPackagesDelimited.Replace(';','').Replace("package","dependency").Replace(` targetFramework="scmpinfra"`,""))</NuGetDependencies>
+      <NuGetDependencies Condition="'$(NuGetPackagesDelimited)'!=''">$(NuGetPackagesDelimited.Replace(';','').Replace("package","dependency").Replace(` targetFramework="scmpinfra"`,""))</NuGetDependencies>
+      <NuGetDependencies Condition="'$(NuGetPackagesDelimited)'==''">$(NoDependencies)</NuGetDependencies>
     </PropertyGroup>
   </Target>
   <Target Name="WriteMpProjectNuGetNuSpecDependencies">
+    <Message Text="$(NuGetDependencies)" Condition="'$(NuGetDependencies)'!='$(NoDependencies)'" Importance="high" />
     <PropertyGroup>
-        <NuSpecNsPrefix>nuspec</NuSpecNsPrefix>
-        <NewDependencyQuery>/$(NuSpecNsPrefix):package/$(NuSpecNsPrefix):metadata/$(NuSpecNsPrefix):dependencies</NewDependencyQuery>
-        <DependencyNamespaces>&lt;Namespace Prefix='$(NuSpecNsPrefix)' Uri='http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd'/&gt;</DependencyNamespaces>
-      </PropertyGroup>
-    <XmlPoke XmlInputPath="$(NuSpecFilePath)"
-             Query="$(NewDependencyQuery)"
-             Namespaces="$(DependencyNamespaces)"
-             Value="$(NuGetDependencies)" />
+      <NuSpecNsPrefix>nuspec</NuSpecNsPrefix>
+      <NewDependencyQuery>/$(NuSpecNsPrefix):package/$(NuSpecNsPrefix):metadata/$(NuSpecNsPrefix):dependencies</NewDependencyQuery>
+      <DependencyNamespaces>&lt;Namespace Prefix='$(NuSpecNsPrefix)' Uri='http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd'/&gt;</DependencyNamespaces>
+    </PropertyGroup>
+    <XmlPoke XmlInputPath="$(NuSpecFilePath)" Query="$(NewDependencyQuery)" Namespaces="$(DependencyNamespaces)" Value="$(NuGetDependencies)" />
   </Target>
   <Target Name="CreateMpProjectNuGetTools">
     <Message Text="Generating scripts for $(NuGetId)." Importance="high" />
