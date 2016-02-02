@@ -1,5 +1,5 @@
 # MPNuGetter
-Creates a NuGet package for the containing Management Pack (MP) project.
+Creates a NuGet package for the containing Management Pack (MP) project.  Available in the [NuGet Gallery](https://www.nuget.org/packages/MPNuGetter/).
 
 Support for consuming NuGet packages from an MP project is being added to NuGet v3.4.
 
