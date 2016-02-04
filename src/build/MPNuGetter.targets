@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="MpProjectNuGet" DependsOnTargets="EnsureMpProjectNuGetFolders;CreateMpProjectNuGetPropsTemplate;CreateMpProjectNuGetArtifacts;CreateMpProjectNuGetNuSpec;UpdateMpProjectNuGetNuSpecDependencies;CreateMpProjectNuGetTools" AfterTargets="MpPackage" />
+  <Target Name="MpProjectNuGet" DependsOnTargets="EnsureMpProjectNuGetFolders;GenerateMpProjectNuGetPropsTemplate;CreateMpProjectNuGetArtifacts;GenerateMpProjectNuGetNuSpec;UpdateMpProjectNuGetNuSpecDependencies;CreateMpProjectNuGetTools" AfterTargets="MpPackage" />
+  <PropertyGroup>
+    <XmlDocumentSeed>&lt;?xml version="1.0" encoding="utf-8" ?&gt;&lt;placeholder/&gt;</XmlDocumentSeed>
+  </PropertyGroup>
   <Target Name="EnsureMpProjectNuGetFolders">
     <Message Text="Ensuring NuGet artfact folders for $(ManagementPackName)." Importance="high" />
     <PropertyGroup>
       <NuGetTargetFramework Condition=" '$(NuGetTargetFramework)' == '' ">$(MpFrameworkIdentifier)</NuGetTargetFramework>
       <NuGetId>$(ManagementPackName)</NuGetId>
+      <MpAlias>$(ManagementPackName)</MpAlias>
+      <MpAlias Condition="$(ManagementPackName.Contains('.'))">$(ManagementPackName.Substring($(ManagementPackName.LastIndexOf('.')))</MpAlias>
       <NuGetVersion>%(EffectiveMpVersion.Version)</NuGetVersion>
       <NuGetTitle>$(Name)</NuGetTitle>
       <NuGetFolder>$(OutputPath)..\..\NuGet\</NuGetFolder>
@@ -29,91 +34,62 @@
     <Message Text="Starting NuGet artfact creation for $(NuGetId)." Importance="high" />
     <Copy SourceFiles="$(PackagedMp)" DestinationFolder="$(NuGetLibFrameworkFolder)" />
   </Target>
-  <Target Name="CreateMpProjectNuGetPropsTemplate">
+  <Target Name="GenerateMpProjectNuGetPropsTemplate">
     <Message Text="Generating NuGet props template for $(NuGetId)." Importance="high" />
-    <ItemGroup>
-      <PropsLine Include="line01">
-        <Text>&lt;?xml version="1.0" encoding="utf-8"?&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line02">
-        <Text>&lt;Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003"&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line03">
-        <Text>  &lt;ItemGroup&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line04">
-        <Text>    &lt;ManagementPackReference Include="$(NuGetId)"&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line05">
-        <Text>      &lt;HintPath&gt;..\packages\$(NuGetId).$(NuGetVersion)\lib\$(NuGetTargetFramework)\$(NuGetId).mpb&lt;/HintPath&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line06">
-        <Text>      &lt;Alias&gt;ADDALIASHERE&lt;/Alias&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line07">
-        <Text>      &lt;MinVersion&gt;$(NuGetVersion)&lt;/MinVersion&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line08">
-        <Text>    &lt;/ManagementPackReference&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line09">
-        <Text>  &lt;/ItemGroup&gt;</Text>
-      </PropsLine>
-      <PropsLine Include="line10">
-        <Text>&lt;/Project&gt;</Text>
-      </PropsLine>
-      <PropsLineText Include="%(PropsLine.Text)" />
-    </ItemGroup>
-    <WriteLinesToFile File="$(PropsFilePath)" Lines="@(PropsLineText)" Overwrite="true" />
+    <PropertyGroup>
+      <PropsContent>
+        <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+          <ItemGroup>
+            <ManagementPackReference Include="$(NuGetId)">
+              <HintPath>..\packages\$(NuGetId).$(NuGetVersion)\lib\$(NuGetTargetFramework)\$(NuGetId).mpb</HintPath>
+              <Alias>$(MpAlias)</Alias>
+              <MinVersion>$(NuGetVersion)</MinVersion>
+            </ManagementPackReference>
+          </ItemGroup>
+        </Project>
+      </PropsContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PropsFilePath)" Lines="$(XmlDocumentSeed)" Overwrite="true" Condition="!Exists($(PropsFilePath))" />
+    <PropertyGroup>
+      <BuildNsPrefix>build</BuildNsPrefix>
+      <BuildNamespaces>&lt;Namespace Prefix='$(BuildNsPrefix)' Uri='http://schemas.microsoft.com/developer/msbuild/2003'/&gt;</BuildNamespaces>
+    </PropertyGroup>
+    <XmlPoke XmlInputPath="$(PropsFilePath)" Query="/" Namespaces="$(BuildNamespaces)" Value="$(PropsContent)" />
   </Target>
-  <Target Name="CreateMpProjectNuGetNuSpec" Condition="!Exists($(NuSpecFilePath))">
+  <Target Name="GenerateMpProjectNuGetNuSpec" >
     <Message Text="Generating NuSpec for $(NuGetId)." Importance="high" />
-    <ItemGroup>
-      <NuSpecLine Include="line01">
-        <Text>&lt;?xml version="1.0" encoding="utf-8"?&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line02">
-        <Text>&lt;package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line03">
-        <Text>  &lt;metadata&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line04">
-        <Text>      &lt;id&gt;$(NuGetId)&lt;/id&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line05">
-        <Text>      &lt;version&gt;$(NuGetVersion)&lt;/version&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line06">
-        <Text>      &lt;authors&gt;$(NuGetTitle) Authors&lt;/authors&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line07">
-        <Text>      &lt;title&gt;$(NuGetTitle)&lt;/title&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line08">
-        <Text>      &lt;requireLicenseAcceptance&gt;false&lt;/requireLicenseAcceptance&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line09">
-        <Text>      &lt;description&gt;$(NuGetTitle)&lt;/description&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line10">
-        <Text>      &lt;tags&gt;$(NuGetTargetFramework)&lt;/tags&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line11">
-        <Text>&lt;dependencies&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line12">
-        <Text>&lt;/dependencies&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line13">
-        <Text>&lt;/metadata&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLine Include="line14">
-        <Text>&lt;/package&gt;</Text>
-      </NuSpecLine>
-      <NuSpecLineText Include="%(NuSpecLine.Text)" />
-    </ItemGroup>
-    <WriteLinesToFile File="$(NuSpecFilePath)" Lines="@(NuSpecLineText)" Overwrite="true" />
+    <PropertyGroup>
+      <ShouldSeedSpec>false</ShouldSeedSpec>
+      <ShouldSeedSpec Condition="!Exists($(NuSpecFilePath))">true</ShouldSeedSpec>
+      <NuSpecContent>
+        <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+          <metadata>
+            <id>placeholder text</id>
+            <version>placeholder text</version>
+            <authors>$(NuGetTitle) Authors</authors>
+            <title>$(NuGetTitle)</title>
+            <requireLicenseAcceptance>false</requireLicenseAcceptance>
+            <description>$(NuGetTitle)</description>
+            <tags>$(NuGetTargetFramework)</tags>
+            <dependencies>
+              <!-- no dependencies -->
+            </dependencies>
+          </metadata>
+        </package>
+      </NuSpecContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(NuSpecFilePath)" Lines="$(XmlDocumentSeed)" Overwrite="true" Condition="$(ShouldSeedSpec)" />
+    <PropertyGroup>
+      <NuSpecNsPrefix>nuspec</NuSpecNsPrefix>
+      <NuSpecNamespaces>&lt;Namespace Prefix='$(NuSpecNsPrefix)' Uri='http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd'/&gt;</NuSpecNamespaces>
+      <NuSpecIdQuery>/$(NuSpecNsPrefix):package/$(NuSpecNsPrefix):metadata/$(NuSpecNsPrefix):id</NuSpecIdQuery>
+      <NuSpecVersionQuery>/$(NuSpecNsPrefix):package/$(NuSpecNsPrefix):metadata/$(NuSpecNsPrefix):version</NuSpecVersionQuery>
+    </PropertyGroup>
+    <!-- seed document, if needed -->
+    <XmlPoke XmlInputPath="$(NuSpecFilePath)" Query="/" Namespaces="$(NuSpecNamespaces)" Value="$(NuSpecContent)" Condition="$(ShouldSeedSpec)" />
+    <!-- update values -->
+    <XmlPoke XmlInputPath="$(NuSpecFilePath)" Query="$(NuSpecIdQuery)" Namespaces="$(NuSpecNamespaces)" Value="$(NuGetId)" />
+    <XmlPoke XmlInputPath="$(NuSpecFilePath)" Query="$(NuSpecVersionQuery)" Namespaces="$(NuSpecNamespaces)" Value="$(NuGetVersion)" />
   </Target>
   <Target Name="UpdateMpProjectNuGetNuSpecDependencies">
     <Message Text="Reading NuSpec dependencies for $(NuGetId)." Importance="high" />
@@ -135,11 +111,9 @@
   <Target Name="WriteMpProjectNuGetNuSpecDependencies">
     <Message Text="$(NuGetDependencies)" Condition="'$(NuGetDependencies)'!='$(NoDependencies)'" Importance="high" />
     <PropertyGroup>
-      <NuSpecNsPrefix>nuspec</NuSpecNsPrefix>
       <NewDependencyQuery>/$(NuSpecNsPrefix):package/$(NuSpecNsPrefix):metadata/$(NuSpecNsPrefix):dependencies</NewDependencyQuery>
-      <DependencyNamespaces>&lt;Namespace Prefix='$(NuSpecNsPrefix)' Uri='http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd'/&gt;</DependencyNamespaces>
     </PropertyGroup>
-    <XmlPoke XmlInputPath="$(NuSpecFilePath)" Query="$(NewDependencyQuery)" Namespaces="$(DependencyNamespaces)" Value="$(NuGetDependencies)" />
+    <XmlPoke XmlInputPath="$(NuSpecFilePath)" Query="$(NewDependencyQuery)" Namespaces="$(NuSpecNamespaces)" Value="$(NuGetDependencies)" />
   </Target>
   <Target Name="CreateMpProjectNuGetTools">
     <Message Text="Generating scripts for $(NuGetId)." Importance="high" />
