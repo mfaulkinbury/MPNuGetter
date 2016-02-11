@@ -131,11 +131,14 @@
         <Text># Prompt to reload the project to add/remove the new/old references</Text>
       </InstallLine>
       <InstallLine Include="line05">
+        <Text># Optionally, add install/uninstall tasks as needed.</Text>
+      </InstallLine>
+      <InstallLine Include="line06">
         <Text>$project.Save($project.FullName)</Text>
       </InstallLine>
       <InstallLineText Include="%(InstallLine.Text)" />
     </ItemGroup>
-    <WriteLinesToFile File="$(InstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" />
-    <WriteLinesToFile File="$(UninstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" />
+    <WriteLinesToFile File="$(InstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" Condition="!Exists($(InstallFilePath))" />
+    <WriteLinesToFile File="$(UninstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" Condition="!Exists($(UninstallFilePath))" />
   </Target>
 </Project>
