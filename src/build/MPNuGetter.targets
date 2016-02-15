@@ -21,6 +21,8 @@
       <PropsFilePath>$(NuGetBuildFolder)$(NuGetId).props</PropsFilePath>
       <InstallFilePath>$(NuGetToolsFolder)install.ps1</InstallFilePath>
       <UninstallFilePath>$(NuGetToolsFolder)uninstall.ps1</UninstallFilePath>
+      <CustomInstallFilePath>$(NuGetToolsFolder)CustomInstall.ps1</CustomInstallFilePath>
+      <CustomUninstallFilePath>$(NuGetToolsFolder)CustomUninstall.ps1</CustomUninstallFilePath>
       <PackagesFilePath>$(MSBuildProjectDirectory)\packages.config</PackagesFilePath>
     </PropertyGroup>
     <Message Text="Ensuring NuGet artfact folders for $(NuGetId)." Importance="high" />
@@ -118,27 +120,78 @@
   <Target Name="CreateMpProjectNuGetTools">
     <Message Text="Generating scripts for $(NuGetId)." Importance="high" />
     <ItemGroup>
-      <InstallLine Include="line01">
+      <InstallUninstallLine Include="line01">
         <Text>param($installPath, $toolsPath, $package, $project)</Text>
-      </InstallLine>
-      <InstallLine Include="line02">
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line02">
         <Text># if there isn't a project file, there is nothing to do</Text>
-      </InstallLine>
-      <InstallLine Include="line03">
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line03">
         <Text>if (!$project) { return }</Text>
-      </InstallLine>
-      <InstallLine Include="line04">
-        <Text># Prompt to reload the project to add/remove the new/old references</Text>
-      </InstallLine>
-      <InstallLine Include="line05">
-        <Text># Optionally, add install/uninstall tasks as needed.</Text>
-      </InstallLine>
-      <InstallLine Include="line06">
-        <Text>$project.Save($project.FullName)</Text>
-      </InstallLine>
-      <InstallLineText Include="%(InstallLine.Text)" />
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line04">
+        <Text># Run custom install</Text>
+        <Restriction>InstallOnly</Restriction>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line04">
+        <Text># Run custom uninstall</Text>
+        <Restriction>UninstallOnly</Restriction>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line05">
+        <Text>&amp; $(CustomInstallFilePath) -installPath $installPath -toolsPath $toolsPath -package $package -project $project</Text>
+        <Restriction>InstallOnly</Restriction>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line05">
+        <Text>&amp; $(CustomUninstallFilePath) -installPath $installPath -toolsPath $toolsPath -package $package -project $project</Text>
+        <Restriction>UninstallOnly</Restriction>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line06">
+        <Text># Prompt to reload the project to add the new references</Text>
+        <Restriction>InstallOnly</Restriction>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line06">
+        <Text># Prompt to reload the project to remove the old references</Text>
+        <Restriction>UninstallOnly</Restriction>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line07">
+        <Text>$proj = $dte.Application.Solution.Projects | where {$_.Name -eq $project.Name} | select -First 1</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line08">
+        <Text>$solExWindow = [EnvDTE.Window]$dte.Application.Windows.Item([EnvDTE.Constants]::vsWindowKindSolutionExplorer).Object.Parent</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line09">
+        <Text>$solExWindow.Activate()</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line10">
+        <Text>$solHier = [EnvDTE.UIHierarchy]$dte.Application.Windows.Item([EnvDTE.Constants]::vsWindowKindSolutionExplorer).Object</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line11">
+        <Text>$projHier = $solHier.UIHierarchyItems.Item(1).UIHierarchyItems | where {$_.Name -eq $project.Name} | select -First 1</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line12">
+        <Text>$projHier.Select([EnvDTE.vsUISelectionType]::vsUISelectionTypeSelect)</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line13">
+        <Text>$proj.Save($proj.FullName)</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line14">
+        <Text>$dte.Application.ExecuteCommand("Project.UnloadProject","")</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line15">
+        <Text>[System.Threading.Thread]::Sleep(500)</Text>
+      </InstallUninstallLine>
+      <InstallUninstallLine Include="line16">
+        <Text>$dte.Application.ExecuteCommand("Project.ReloadProject","")</Text>
+      </InstallUninstallLine>
+      
+      <InstallLines Include="%(InstallUninstallLine.Text)" Condition="'%(InstallUninstallLine.Restriction)'!='UninstallOnly'"/>
+      <UninstallLines Include="%(InstallUninstallLine.Text)" Condition="'%(InstallUninstallLine.Restriction)'!='InstallOnly'"/>
+      
+      <CustomInstallUninstallLines Include="%(InstallUninstallLine.Text)" Condition="'%(Identity)'=='Line01'" />
     </ItemGroup>
-    <WriteLinesToFile File="$(InstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" Condition="!Exists($(InstallFilePath))" />
-    <WriteLinesToFile File="$(UninstallFilePath)" Lines="@(InstallLineText)" Overwrite="true" Condition="!Exists($(UninstallFilePath))" />
+    <WriteLinesToFile File="$(InstallFilePath)" Lines="@(InstallLines)" Overwrite="true" Condition="!Exists($(InstallFilePath))" />
+    <WriteLinesToFile File="$(CustomInstallFilePath)" Lines="@(CustomInstallUninstallLines)" Overwrite="true" Condition="!Exists($(CustomInstallFilePath))" />
+    <WriteLinesToFile File="$(UninstallFilePath)" Lines="@(UninstallLines)" Overwrite="true" Condition="!Exists($(UninstallFilePath))" />
+    <WriteLinesToFile File="$(CustomUninstallFilePath)" Lines="@(CustomInstallUninstallLines)" Overwrite="true" Condition="!Exists($(CustomUninstallFilePath))" />
   </Target>
 </Project>
