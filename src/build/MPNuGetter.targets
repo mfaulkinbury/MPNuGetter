@@ -138,11 +138,11 @@
         <Restriction>UninstallOnly</Restriction>
       </InstallUninstallLine>
       <InstallUninstallLine Include="line05">
-        <Text>&amp; $(CustomInstallFilePath) -installPath $installPath -toolsPath $toolsPath -package $package -project $project</Text>
+        <Text>&amp; "$toolsPath\CustomInstall.ps1" -installPath $installPath -toolsPath $toolsPath -package $package -project $project</Text>
         <Restriction>InstallOnly</Restriction>
       </InstallUninstallLine>
       <InstallUninstallLine Include="line05">
-        <Text>&amp; $(CustomUninstallFilePath) -installPath $installPath -toolsPath $toolsPath -package $package -project $project</Text>
+        <Text>&amp; "$toolsPath\CustomUninstall.ps1" -installPath $installPath -toolsPath $toolsPath -package $package -project $project</Text>
         <Restriction>UninstallOnly</Restriction>
       </InstallUninstallLine>
       <InstallUninstallLine Include="line06">
