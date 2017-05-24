@@ -15,6 +15,6 @@
     </metadata>
     <files>
         <file src="build\MPNuGetter.targets" target="build\MPNuGetter.targets" />
-        <file src="tools\*.ps_" target="tools" />
+        <file src="templates\*.*" target="templates" />
     </files>
 </package>
