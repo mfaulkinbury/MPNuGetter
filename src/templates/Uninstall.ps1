@@ -1,10 +1,10 @@
 param($installPath, $toolsPath, $package, $project)
 
 Write-Host "Uninstall script running..."
-Write-Host "`tInstallPath: $installPath"
-Write-Host "`tToolsPath: $toolsPath"
+# Write-Host "`tInstallPath: $installPath"
+# Write-Host "`tToolsPath: $toolsPath"
 Write-Host "`tPackage: $($package.Id)"
-Write-Host "`tProject: $($project.Name)"
+# Write-Host "`tProject: $($project.Name)"
 
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.EnterpriseManagement.Packaging") | Out-Null
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.EnterpriseManagement.Configuration.IO") | Out-Null

@@ -27,6 +27,13 @@ function AddManagementPackReference([Microsoft.EnterpriseManagement.Configuratio
 
 			if (-not $isAlreadyAdded)
 			{
+                $preferredAlias = (get-content "$toolsPath\PreferredAlias.txt").Trim()
+
+                if (-not [string]::IsNullOrEmpty($preferredAlias))
+                {
+                    $setAliasMethodInfo.Invoke($packReferenceNode, @($preferredAlias))
+                }
+        
 				$packReferenceNode.AddReference()
                 Write-Host "`tReference to $($packReferenceNode.Name) added."
 			}
@@ -108,6 +115,7 @@ $bindingFlags = $bindingFlags -bor [System.Reflection.BindingFlags]::DeclaredOnl
 
 [Microsoft.SystemCenter.Authoring.ProjectSystem.ManagementPackReferenceContainerNode]$mpReferenceContainerNode = $refFolderPropinfo.GetValue($oaReferenceFolderItem)
 $isAlreadyAddedMethodInfo = [Microsoft.SystemCenter.Authoring.ProjectSystem.ManagementPackReferenceNode].GetMethod("IsAlreadyAdded", $bindingFlags)
+$setAliasMethodInfo = [Microsoft.SystemCenter.Authoring.ProjectSystem.ManagementPackReferenceNode].GetMethod("SetAlias", $bindingFlags)
 
 $candidateReferences = gci "$installPath\lib\SCMPInfra"
 
