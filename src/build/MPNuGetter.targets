@@ -15,10 +15,8 @@
       <NuGetFolder>$(OutputPath)..\..\NuGet\</NuGetFolder>
       <NuGetLibFolder>$(NuGetFolder)lib\</NuGetLibFolder>
       <NuGetLibFrameworkFolder>$(NuGetLibFolder)$(NuGetTargetFramework)\</NuGetLibFrameworkFolder>
-      <NuGetBuildFolder>$(NuGetFolder)build\</NuGetBuildFolder>
       <NuGetToolsFolder>$(NuGetFolder)tools\</NuGetToolsFolder>
       <NuSpecFilePath>$(NuGetFolder)$(NuGetId).nuspec</NuSpecFilePath>
-      <PropsFilePath>$(NuGetBuildFolder)$(NuGetId).props</PropsFilePath>
 	  <InstallTemplatesFolder>$(MSBuildThisFileDirectory)..\templates</InstallTemplatesFolder>
       <PackagesFilePath>$(MSBuildProjectDirectory)\packages.config</PackagesFilePath>
     </PropertyGroup>
@@ -26,7 +24,6 @@
     <MakeDir Directories="$(NuGetFolder)" />
     <MakeDir Directories="$(NuGetLibFolder)" />
     <MakeDir Directories="$(NuGetLibFrameworkFolder)" />
-    <MakeDir Directories="$(NuGetBuildFolder)" />
     <MakeDir Directories="$(NuGetToolsFolder)" />
   </Target>
   <Target Name="CreateMpProjectNuGetArtifacts">
