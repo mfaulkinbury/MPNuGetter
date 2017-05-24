@@ -6,6 +6,14 @@ Write-Host "Install script running..."
 Write-Host "`tPackage: $($package.Id)"
 # Write-Host "`tProject: $($project.Name)"
 
+# if there isn't a project file, there is nothing to do
+if (!$project) 
+{ 
+	Write-Host "Parameters do not include project reference.  Exiting."
+
+	return; 
+}
+
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.EnterpriseManagement.Packaging") | Out-Null
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.EnterpriseManagement.Configuration.IO") | Out-Null
 
@@ -105,7 +113,6 @@ function AddManagementPackReferenceFromSealedMp([string] $path)
 }
 
 
-
 [Microsoft.SystemCenter.Authoring.ProjectSystem.ManagementPackProjectNode]$projectMgr = $project.Object
 $oaReferenceFolderItem = $project.ProjectItems.Item(1)
 $bindingFlags = [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic 
@@ -138,4 +145,6 @@ foreach ($candidateReference in $candidateReferences)
 	}
 }
 
+# Run custom install
+& "$toolsPath\CustomInstall.ps1" -installPath $installPath -toolsPath $toolsPath -package $package -project $project
 

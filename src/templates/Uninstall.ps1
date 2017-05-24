@@ -6,6 +6,14 @@ Write-Host "Uninstall script running..."
 Write-Host "`tPackage: $($package.Id)"
 # Write-Host "`tProject: $($project.Name)"
 
+# if there isn't a project file, there is nothing to do
+if (!$project) 
+{ 
+	Write-Host "Parameters do not include project reference.  Exiting."
+
+	return; 
+}
+
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.EnterpriseManagement.Packaging") | Out-Null
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.EnterpriseManagement.Configuration.IO") | Out-Null
 
@@ -139,4 +147,6 @@ foreach ($candidateReference in $candidateReferences)
 	}
 }
 
+# Run custom uninstall
+& "$toolsPath\CustomUninstall.ps1" -installPath $installPath -toolsPath $toolsPath -package $package -project $project
 
