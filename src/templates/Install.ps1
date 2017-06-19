@@ -38,14 +38,13 @@ function AddManagementPackReference([Microsoft.EnterpriseManagement.Configuratio
 				$packReferenceNode.AddReference()
                 Write-Host "`tReference to $($packReferenceNode.Name) added."
 
-                $preferredAlias = (get-content "$toolsPath\PreferredAlias.txt").Trim()
-
+                $preferredAlias = (import-csv "$toolsPath\PreferredAlias.csv").Where({$_.Name -eq $packReferenceNode.Name}).Alias
+        
                 if (-not [string]::IsNullOrEmpty($preferredAlias))
                 {
 					Write-Host "`tSetting preferred alias ($preferredAlias) on $($packReferenceNode.Name)."
                     $setAliasMethodInfo.Invoke($packReferenceNode, @($preferredAlias))
                 }
-        
 			}
             else { Write-Host "`tReference to $($packReferenceNode.Name) already exists."}
 
