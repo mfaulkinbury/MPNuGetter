@@ -2,12 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>MPNuGetter</id>
-        <version>1.0.9</version>
+        <version>1.0.10</version>
         <title>MP NuGetter</title>
         <authors>Mike Faulkinbury</authors>
         <owners>mfaulkinbury</owners>
         <licenseUrl>https://raw.githubusercontent.com/mfaulkinbury/MPNuGetter/master/LICENSE</licenseUrl>
         <projectUrl>https://github.com/mfaulkinbury/MPNuGetter</projectUrl>
+		<iconUrl>https://raw.githubusercontent.com/mfaulkinbury/MPNuGetter/master/SCOM-Icon-64.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <developmentDependency>true</developmentDependency>
         <description>Creates a NuGet package for the containing Management Pack project.</description>
