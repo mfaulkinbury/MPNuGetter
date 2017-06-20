@@ -38,7 +38,7 @@ function AddManagementPackReference([Microsoft.EnterpriseManagement.Configuratio
 				$packReferenceNode.AddReference()
                 Write-Host "`tReference to $($packReferenceNode.Name) added."
 
-                $preferredAlias = (import-csv "$toolsPath\PreferredAlias.csv").Where({$_.Name -eq $packReferenceNode.Name}).Alias
+                $preferredAlias = ((import-csv "$toolsPath\PreferredAlias.csv") | where {$_.Name -eq $packReferenceNode.Name} | select -first 1).Alias
         
                 if (-not [string]::IsNullOrEmpty($preferredAlias))
                 {
