@@ -1,10 +1,7 @@
 param($installPath, $toolsPath, $package, $project)
 
 Write-Host "Uninstall script running..."
-# Write-Host "`tInstallPath: $installPath"
-# Write-Host "`tToolsPath: $toolsPath"
 Write-Host "`tPackage: $($package.Id)"
-# Write-Host "`tProject: $($project.Name)"
 
 # if there isn't a project file, there is nothing to do
 if (!$project) 
@@ -41,9 +38,9 @@ function SafeRemoveManagementPackReference([string] $referenceName)
             $identity = $packReferenceNode.Name
             $shouldRemoveFromStorage = $false # the nuget folder uninstall will take care of file cleanup
             $packReferenceNode.Remove($shouldRemoveFromStorage);
-            Write-Host "`tReference to $($packReferenceNode.Name) removed."
+            Write-Host "`t`t`tReference to $($packReferenceNode.Name) removed."
         }
-        else { Write-Host "`tReference to $($packReferenceNode.Name) not found."}
+        else { Write-Host "`t`t`tReference to $($packReferenceNode.Name) not found."}
 
 	}
 	finally
@@ -53,58 +50,36 @@ function SafeRemoveManagementPackReference([string] $referenceName)
 	}
 }
 
-function TryGetFullBundlePath([string] $bundleName, [ref] $fullPath)
+
+function RemoveManagementPackReferencesFromBundle([string] $fullPath)
 {
-    $found = $false;
-    [string]$fullPath = $null;
-
-    foreach ($reference in $mpReferenceContainerNode.EnumReferences())
-    {
-        if ($reference.ManagementPackPath.EndsWith($bundleName, [System.StringComparison]::OrdinalIgnoreCase))
-        {
-            $found = $true;
-            $fullPath = $reference.ManagementPackPath;
-            break;
-        }
-            
-        if ($reference -is [IDisposable]) { $reference.Dispose() }
-    }
-
-    $found;
-}
-
-function RemoveManagementPackReferencesFromBundle([string] $bundleName)
-{
-    [string] $fullPath = $null
-    if (TryGetFullBundlePath($bundleName, $fullPath))
-    {
-	    $bundleReader = [Microsoft.EnterpriseManagement.Packaging.ManagementPackBundleFactory]::CreateBundleReader()
+	$bundleReader = [Microsoft.EnterpriseManagement.Packaging.ManagementPackBundleFactory]::CreateBundleReader()
  
-	    $mpFileStore = $null
- 	    try
-	    {
-            $mpFileStore = New-Object Microsoft.EnterpriseManagement.Configuration.IO.ManagementPackFileStore
+	$mpFileStore = $null
+ 	try
+	{
+        $mpFileStore = New-Object Microsoft.EnterpriseManagement.Configuration.IO.ManagementPackFileStore
 		
-		    $bundle = $bundleReader.Read($fullPath, $mpFileStore)
+		$bundle = $bundleReader.Read($fullPath, $mpFileStore)
 		
-		    foreach ($pack in $bundle.ManagementPacks) 
-		    {
-			    try
-			    {
-				    SafeRemoveManagementPackReference $pack.Name
-			    }
-			    finally
-			    {
-				    if ($pack -is [IDisposable]) { $pack.Dispose() }
-			    }
-		    }
+		foreach ($pack in $bundle.ManagementPacks) 
+		{
+			try
+			{
+				Write-Host "`t`tRemoving reference: $($pack.Name)"
+				SafeRemoveManagementPackReference $pack.Name
+			}
+			finally
+			{
+				if ($pack -is [IDisposable]) { $pack.Dispose() }
+			}
+		}
 		
-	    }
-	    finally
-	    {
-		    if ($mpFileStore -is [IDisposable]) { $mpFileStore.Dispose() }
-	    }
-    }
+	}
+	finally
+	{
+		if ($mpFileStore -is [IDisposable]) { $mpFileStore.Dispose() }
+	}
 }
 
 function RemoveManagementPackReferenceFromSealedMp([string] $path)
@@ -121,10 +96,8 @@ $oaReferenceFolderItem = $project.ProjectItems.Item(1)
 $bindingFlags = [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic 
 $refFolderType = $oaReferenceFolderItem.GetType()
 $refFolderPropinfo = $refFolderType.GetProperty("Node", $bindingFlags)
-$bindingFlags = $bindingFlags -bor [System.Reflection.BindingFlags]::DeclaredOnly
 
 [Microsoft.SystemCenter.Authoring.ProjectSystem.ManagementPackReferenceContainerNode]$mpReferenceContainerNode = $refFolderPropinfo.GetValue($oaReferenceFolderItem)
-$isAlreadyAddedMethodInfo = [Microsoft.SystemCenter.Authoring.ProjectSystem.ManagementPackReferenceNode].GetMethod("IsAlreadyAdded", $bindingFlags)
 
 $candidateReferences = gci "$installPath\lib\SCMPInfra"
 
@@ -149,4 +122,3 @@ foreach ($candidateReference in $candidateReferences)
 
 # Run custom uninstall
 & "$toolsPath\CustomUninstall.ps1" -installPath $installPath -toolsPath $toolsPath -package $package -project $project
-
