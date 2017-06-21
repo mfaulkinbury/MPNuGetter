@@ -1,4 +1,2 @@
 Name,Alias
-Microsoft.IntelligencePacks.Types,IPTypes
-Microsoft.IntelligencePacks.Monitoring,IPMonitoring
-Microsoft.IntelligencePacks.InstanceSubscription,IPInstanceSubscription
+MyNamespace.MyLibrary,MyAlias

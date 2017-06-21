@@ -98,9 +98,11 @@
 		<ToolsCustomScriptFiles Include="$(InstallTemplatesFolder)\Custom*.ps1" Exclude="@(ExistingToolsCustomScriptFiles -> '$(InstallTemplatesFolder)\%(FileName)%(Extension)')" />
 		<ExistingToolsCustomSettingsFiles Include="$(NuGetToolsFolder)*.csv" />
 		<ToolsCustomSettingsFiles Include="$(InstallTemplatesFolder)\*.csv" Exclude="@(ExistingToolsCustomSettingsFiles -> '$(InstallTemplatesFolder)\%(FileName)%(Extension)')" />
+		<ToolsCustomSettingsExampleFiles Include="$(NuGetToolsFolder)*.example" />
 	</ItemGroup>
 	<Copy SourceFiles="@(ToolsScriptFiles)" DestinationFolder="$(NuGetToolsFolder)" />
 	<Copy SourceFiles="@(ToolsCustomScriptFiles)" DestinationFolder="$(NuGetToolsFolder)" />
 	<Copy SourceFiles="@(ToolsCustomSettingsFiles)" DestinationFolder="$(NuGetToolsFolder)" />
+	<Copy SourceFiles="@(ToolsCustomSettingsExampleFiles)" DestinationFolder="$(NuGetToolsFolder)" />
   </Target>
 </Project>
