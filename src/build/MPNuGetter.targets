@@ -96,8 +96,8 @@
 		<ToolsScriptFiles Include="$(InstallTemplatesFolder)\Uninstall.ps1"/>
 		<ExistingToolsCustomScriptFiles Include="$(NuGetToolsFolder)Custom*.ps1" />
 		<ToolsCustomScriptFiles Include="$(InstallTemplatesFolder)\Custom*.ps1" Exclude="@(ExistingToolsCustomScriptFiles -> '$(InstallTemplatesFolder)\%(FileName)%(Extension)')" />
-		<ExistingToolsCustomSettingsFiles Include="$(NuGetToolsFolder)*.txt" />
-		<ToolsCustomSettingsFiles Include="$(InstallTemplatesFolder)\*.txt" Exclude="@(ExistingToolsCustomSettingsFiles -> '$(InstallTemplatesFolder)\%(FileName)%(Extension)')" />
+		<ExistingToolsCustomSettingsFiles Include="$(NuGetToolsFolder)*.csv" />
+		<ToolsCustomSettingsFiles Include="$(InstallTemplatesFolder)\*.csv" Exclude="@(ExistingToolsCustomSettingsFiles -> '$(InstallTemplatesFolder)\%(FileName)%(Extension)')" />
 	</ItemGroup>
 	<Copy SourceFiles="@(ToolsScriptFiles)" DestinationFolder="$(NuGetToolsFolder)" />
 	<Copy SourceFiles="@(ToolsCustomScriptFiles)" DestinationFolder="$(NuGetToolsFolder)" />
