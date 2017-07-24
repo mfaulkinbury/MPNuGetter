@@ -21,6 +21,9 @@ function AddManagementPackReference([Microsoft.EnterpriseManagement.Configuratio
 {
 	$identity = "$($managementPack.Name) (Version=$($managementPack.Version), PublicKeyToken=$($managementPack.KeyToken))"
 
+    #make hint path relative
+    $hintPath = "..$($hintPath.Substring($hintPath.IndexOf("\packages")))"
+
 	if ($managementPack.Sealed)
 	{
 		$packReferenceNode = $null
