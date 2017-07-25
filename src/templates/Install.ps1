@@ -6,6 +6,10 @@ Write-Host "Install script running..."
 Write-Host "`tPackage: $($package.Id)"
 # Write-Host "`tProject: $($project.Name)"
 
+[System.IO.Directory]::SetCurrentDirectory($project.Properties.Item("FullPath").Value)
+Write-Host "`tCurrent directory: $([System.IO.Directory]::GetCurrentDirectory())"
+
+
 # if there isn't a project file, there is nothing to do
 if (!$project) 
 { 
